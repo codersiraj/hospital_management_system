@@ -4,6 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HospitalApplicationAPI.Models
 {
+
+    [Table("tbl_Patient")]      
     public class Patient
     {
         [Key]
