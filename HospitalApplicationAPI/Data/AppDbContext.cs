@@ -16,6 +16,11 @@ namespace HospitalApplicationAPI.Data
 
         public DbSet<Doctor> Doctor { get; set; }
 
+        
+        public DbSet<UserAccount> UserAccounts { get; set; }
+
+        public DbSet<Member> Members { get; set; }
+
         // Add other tables like Doctors, Staff, etc. later
     }
 }

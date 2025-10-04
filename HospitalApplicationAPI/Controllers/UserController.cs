@@ -2,7 +2,9 @@
 using HospitalApplicationAPI.Models;
 using HospitalApplicationAPI.Models.Request;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace HospitalApplicationAPI.Controllers
 {
@@ -133,6 +135,57 @@ namespace HospitalApplicationAPI.Controllers
             }
 
             return userId;
+        }
+
+        [HttpPost("{id}/create-useraccount")]
+        public async Task<IActionResult> CreateUserAccount(string id, [FromBody] UserAccount request)
+        {
+            try
+            {
+                var isExistParam = new SqlParameter("@isExist", SqlDbType.Bit) { Direction = ParameterDirection.Output };
+
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC dbo.spInsertUserAccount @UserID, @MemberID, @UserType, @Pwd, @CreatedBy, @isExist OUTPUT",
+                    new SqlParameter("@UserID", request.UserID),
+                    new SqlParameter("@MemberID", id),
+                    new SqlParameter("@UserType", request.UserType),
+                    new SqlParameter("@Pwd", request.Pwd), // ⚡ should hash before inserting
+                    new SqlParameter("@CreatedBy", request.CreatedBy ?? "system"),
+                    isExistParam
+                );
+
+                bool isExist = (bool)isExistParam.Value;
+                if (isExist)
+                    return Conflict(new { message = "User already exists." });
+
+                return Ok(new { message = "Access provided successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Delete (soft delete) a user account using stored procedure spDeleteUserAccount
+        /// </summary>
+        [HttpDelete("delete/{userId}")]
+        public async Task<IActionResult> DeleteUserAccount(string userId, [FromQuery] string editedBy = "system")
+        {
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC dbo.spDeleteUserAccount @UserID, @EditedBy",
+                    new SqlParameter("@UserID", userId),
+                    new SqlParameter("@EditedBy", editedBy)
+                );
+
+                return Ok(new { message = $"User account {userId} deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
         }
     }
 }

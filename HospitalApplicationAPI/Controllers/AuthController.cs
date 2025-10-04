@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using BCrypt.Net;
 using HospitalApplicationAPI.Models.Request;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 
 namespace HospitalApplicationAPI.Controllers
 {
@@ -40,6 +41,34 @@ namespace HospitalApplicationAPI.Controllers
                 role = user.Role,
                 token = token
             });
+        }
+
+        [HttpPost("authenticate")]
+        public async Task<IActionResult> Authenticate([FromBody] LoginRequest request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.Password))
+                return BadRequest("UserId and Password are required.");
+
+            var userIdParam = new SqlParameter("@UserId", request.UserId);
+            var passwordParam = new SqlParameter("@Password", request.Password);
+
+            var isValidParam = new SqlParameter
+            {
+                ParameterName = "@IsValid",
+                SqlDbType = System.Data.SqlDbType.Bit,
+                Direction = System.Data.ParameterDirection.Output
+            };
+
+            await _context.Database.ExecuteSqlRawAsync(
+                "EXEC sp_ValidateUser @UserId, @Password, @IsValid OUTPUT",
+                userIdParam, passwordParam, isValidParam);
+
+            bool isValid = (bool)isValidParam.Value;
+
+            if (isValid)
+                return Ok(new { Success = true, Message = "Login successful" });
+            else
+                return Unauthorized(new { Success = false, Message = "Invalid credentials" });
         }
 
     }
