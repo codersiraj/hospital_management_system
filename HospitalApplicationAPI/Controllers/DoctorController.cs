@@ -1,5 +1,6 @@
 ﻿using HospitalApplicationAPI.Data;
 using HospitalApplicationAPI.Models;
+using HospitalApplicationAPI.Models.Request;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,23 +17,23 @@ namespace HospitalApplicationAPI.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Doctor>>> GetDoctors()
+        [HttpGet("get-doctors")]
+        public async Task<IActionResult> GetDoctors()
         {
-            var doctors = await _context.Users.Where(u => u.Role == "Doctor")
-                .Select(u => new
-                {
-                    u.UserId,
-                    u.FullName,
-                    u.Email,
-                    u.Phone,
-                    u.IsActive,
-                    u.CreatedAt
-                    // Add any additional fields you want to expose
-                })
-                .ToListAsync();
+            try
+            {
+                // Execute the stored procedure
+                var doctors = await _context.Set<GetDoctorsRequest>()
+                    .FromSqlRaw("EXEC spGetDoctors")
+                    .ToListAsync();
 
-            return Ok(doctors);
+                return Ok(doctors);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while fetching doctors.", error = ex.Message });
+            }
         }
+
     }
 }
