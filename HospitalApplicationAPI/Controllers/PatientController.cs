@@ -34,7 +34,7 @@ namespace HospitalApplicationAPI.Controllers
 
                 // ✅ Call stored procedure with EF Core
                 await _context.Database.ExecuteSqlRawAsync(
-                    "EXEC dbo.spInsertMemberNew " +
+                    "EXEC dbo.spInsertMember " +
                     "@PhotoUrl, @MemberType, @MemberSubType, @IDType, @NRIC, @IDProof1, @IDProof2, " +
                     "@FullName1, @FullName2, @RelativeID1, @RelativeID2, @RelativeName1, @RelativeName2, @Relationship1, @Relationship2, " +
                     "@DOB, @Gender, @MStatus, @Nationality, @Address1, @Address2, @Address3, @Address4, @EAddress1, @EAddress2, @EAddress3, " +
