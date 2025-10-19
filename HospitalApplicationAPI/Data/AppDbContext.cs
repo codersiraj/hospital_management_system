@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using HospitalApplicationAPI.Models;
-using HospitalApplicationAPI.Models.Request; // Adjust based on your project structure
+using HospitalApplicationAPI.Models.Request;// Adjust based on your project structure
+using HospitalApplicationAPI.Models.Response;
 
 namespace HospitalApplicationAPI.Data
 {
@@ -22,6 +23,11 @@ namespace HospitalApplicationAPI.Data
 
         public DbSet<Member> Members { get; set; }
 
+        public DbSet<DoctorPatientView> DoctorPatientView { get; set; }
+
+        public DbSet<PatientNameView> PatientNameView { get; set; }
+
+
         // Add other tables like Doctors, Staff, etc. later
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -31,6 +37,8 @@ namespace HospitalApplicationAPI.Data
             // ✅ This tells EF: "It's not a table — just map query results"
             modelBuilder.Entity<CheckPatientRequest>().HasNoKey();
             modelBuilder.Entity<GetDoctorsRequest>().HasNoKey();
+            modelBuilder.Entity<DoctorPatientView>().HasNoKey();
+            modelBuilder.Entity<PatientNameView>().HasNoKey();
         }
     }
 }

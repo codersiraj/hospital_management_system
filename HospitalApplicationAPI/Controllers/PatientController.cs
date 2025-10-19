@@ -103,6 +103,41 @@ namespace HospitalApplicationAPI.Controllers
             }
         }
 
+        // ✅ GET /api/patient/fullname/{patientId}
+        [HttpGet("fullname/{patientId}")]
+        public async Task<IActionResult> GetPatientFullName(string patientId)
+        {
+            if (string.IsNullOrEmpty(patientId))
+                return BadRequest(new { Success = false, Message = "PatientID is required." });
+
+            try
+            {
+                var patientIdParam = new SqlParameter("@PatientID", patientId);
+
+                var result = await _context.PatientNameView
+                    .FromSqlRaw("EXEC sp_GetPatientFullNameByID @PatientID", patientIdParam)
+                    .ToListAsync();
+
+                if (result == null || !result.Any())
+                    return NotFound(new { Success = false, Message = "Patient not found." });
+
+                return Ok(new
+                {
+                    Success = true,
+                    Data = result.First()
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Error fetching patient name.",
+                    Error = ex.Message
+                });
+            }
+        }
+
 
         [HttpGet("check-nric")]
         public async Task<IActionResult> CheckNRICExists([FromQuery] string nric)
